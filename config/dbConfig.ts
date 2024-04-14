@@ -1,7 +1,7 @@
 const config = {
   database: process.env.DB_NAME,
-  username: process.env.CRUD_DB_USER,
-  password: process.env.CRUD_BD_PASS,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASS,
   options: {
     logging: true,
     host: process.env.DB_HOST,
