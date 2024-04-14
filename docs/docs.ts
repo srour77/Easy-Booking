@@ -114,7 +114,7 @@ const docs = {
     }
 },
 "servers": [ { "url": "http://localhost:3333/" } ],
-"tags": [{"name": "users"}, {"name": "admins"}, {"name": "super admins"}, {"name": "companies"}, {"name": "trips"}, {"name": "trip days"}, {"name": "busses"}, {"name": "bookings"}],
+"tags": [{"name": "users"}, {"name": "admins"}, {"name": "superAdmins"}, {"name": "buses"}, {"name": "companies"}, {"name": "trips"}, {"name": "tripDays"}, {"name": "userTrips"}],
 "paths": {
     "/users/signup": {
         "post": {
@@ -488,16 +488,623 @@ const docs = {
         }
     },
     "/admins/login": {
-        
+      "post": {
+        "tags": ["admins"],
+        "description": "login an admin",
+        "requestBody": {
+            "required": true,
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "Email": {"type": "string"},
+                            "Password": {"type": "string"}
+                        }
+                    }
+                }
+            }
+        },
+        "responses": {
+            "200": {"description": "admin logged in successfully and a token returned"},
+            "400": {"description": "incorrect credentials"}
+        }
+      }  
     },
     "/admins/signup": {
-        
+        "post": {
+            "tags": ["admins"],
+            "description": "create new admin",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Name": {"type": "string"},
+                                "Email": {"type": "string"},
+                                "PhoneNumber": {"type": "string"},
+                                "Password": {"type": "string"},
+                                "CompanyId": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "admin created successfully"},
+                "400": {"description": "invalid input data"}
+            }
+        }
     },
     "/admins/requestResetPassword": {
-
+        "post": {
+            "tags": ["admins"],
+            "description": "reset password for an admin",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Email": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {"description": "an mail with url to resest admin's password has been sent to his email"},
+                "400": {"description": "invalid email"}
+            }
+        }
     },
     "/admins/resetPassword": {
-        
+        "post": {
+            "tags": ["admins"],
+            "description": "reset admin password with new password",
+            "parameters": [
+                {
+                    "name": "token",
+                    "in": "query",
+                    "required": true,
+                    "schema": {"type": "string"}
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "description": "new password",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Password": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {"description": "admin password has been reset successfully"},
+                "400": {"description": "invalid token"}
+            }
+        }
+    },
+    "/superAdmins": {
+        "post": {
+            "tags": ["superAdmins"],
+            "description": "create new super admin",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Name": {"type": "string"},
+                                "Email": {"type": "string"},
+                                "Password": {"type": "string"},
+                                "CompanyId": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "super admin created successfully"},
+                "400": {"description": "invalid input"}
+            }
+        }
+    },
+    "/superAdmins/{id}": {
+        "get": {
+            "tags": ["superAdmins"],
+            "description": "get super admin info by his id",
+            "parameters": [
+                {
+                    "name": "id",
+                    "required": true,
+                    "in": "path",
+                    "schema": {"type": "number"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "super admin info retrieved successfully"},
+                "400": {"description": "invalid super admin id"}
+            }
+        },
+        "put": {
+            "tags": ["superAdmins"],
+            "description": "update super admin info",
+            "parameters": [
+                {
+                    "name": "id",
+                    "required": true,
+                    "in": "path",
+                    "schema": {"type": "number"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "super admin info updated successfully"},
+                "400": {"description": "invalid super admin id"}
+            }
+        },
+        "delete": {
+            "tags": ["superAdmins"],
+            "description": "delete super admin info",
+            "parameters": [
+                {
+                    "name": "id",
+                    "required": true,
+                    "in": "path",
+                    "schema": {"type": "number"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "super admin deleted successfully"},
+                "400": {"description": "invalid super admin id"}
+            }
+        }
+    },
+    "/buses": {
+        "post": {
+            "tags": ["buses"],
+            "description": "create new bus",
+            "security": [ {"bearer": ["admin"]} ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "DisplayName": {"type": "string"},
+                                "SerialNumber": {"type": "string"},
+                                "PlateNumber": {"type": "string"},
+                                "Size": {"type": "number"},
+                                "CompanyId": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "bus has been created successfully"},
+                "400": {"description": "invalid input"}
+            }
+        }
+    },
+    "/buses/{id}": {
+        "get": {
+            "tags": ["buses"],
+            "description": "get bus info by it's id",
+            "security": [{"bearer": ["admin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "required": true,
+                    "in": "path",
+                    "description": "id of the bus to get data about",
+                    "schema": {"type": "number", "format": "int64"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "bus info retrieved successfully"},
+                "500": {"description": "server error"}
+            }
+        },
+        "put": {
+            "tags": ["buses"],
+            "description": "update bus info",
+            "security": [{"bearer": ["admin"]}],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "DisplayName": {"type": "string"},
+                                "SerialNumber": {"type": "string"},
+                                "PlateNumber": {"type": "string"},
+                                "Size": {"type": "number"},
+                                "CompanyId": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "required": true,
+                    "in": "path",
+                    "description": "id of the bus to update it's data",
+                    "schema": {"type": "number", "format": "int64"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "bus info updated successfully"},
+                "400": {"description": "invalid input"}
+            }
+        },
+        "delete": {
+            "tags": ["buses"],
+            "description": "update bus info",
+            "security": [{"bearer": ["admin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "required": true,
+                    "in": "path",
+                    "description": "id of the bus to be deleted",
+                    "schema": {"type": "number", "format": "int64"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "bus has been deleted successfully"},
+                "500": {"description": "server error"}
+            }
+        }
+    },
+    "/companies": {
+        "post": {
+            "tags": ["companies"],
+            "description": "create new company",
+            "security": [{"bearer": ["superAdmin"]}],
+            "requestBody": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Name": {"type": "string"},
+                                "Email": {"type": "string"},
+                                "PhoneNumber": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "company has been created successfully"},
+                "400": {"description": "invalid input"}
+            }
+        }
+    },
+    "/companies/{id}": {
+        "get": {
+            "tags": ["companies"],
+            "description": "get company info",
+            "security": [{"bearer": ["superAdmin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "id of the company to get info about",
+                    "schema": {"type": "number"},
+                    "required": true
+                }
+            ],
+            "responses": {
+                "200": {"description": "company info retrieved successfully"},
+                "400": {"description": "invalid company id provided"}
+            }
+        },
+        "put": {
+            "tags": ["companies"],
+            "description": "update company",
+            "security": [{"bearer": ["superAdmin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "schema": {"type": "number"},
+                    "in": "path",
+                    "description": "id of the company to get info about",
+                    "required": true
+                }
+            ],
+            "requestBody": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Name": {"type": "string"},
+                                "Email": {"type": "string"},
+                                "PhoneNumber": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {"description": "company info updated successfully"},
+                "400": {"description": "invalid input"}
+            }
+        },
+        "delete":{
+            "tags": ["companies"],
+            "description": "delete company",
+            "security": [{"bearer": ["superAdmin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "schema": {"type": "number"},
+                    "in": "path",
+                    "description": "id of the company to get info about",
+                    "required": true
+                }
+            ],
+            "responses": {
+                "200": {"description": "company deleted successfully"},
+                "400": {"description": "invalid company id provided"}
+            }
+        }
+    },
+    "/trips": {
+        "post": {
+            "tags": ["trips"],
+            "description": "create new trip",
+            "security": [{"bearer": ["admin"]}],
+            "requestBody": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "DepartureStation": {"type": "string"},
+                                "ArrivalStation": {"type": "string"},
+                                "StartTime": {"type": "string"},
+                                "EndTime": {"type": "string"},
+                                "BusId": {"type": "number"},
+                                "Cost": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "trip has been created successfully"},
+                "400": {"description": "invalid input"}
+            }
+        }
+    },
+    "/trips/{id}": {
+        "get": {
+            "tags": ["trips"],
+            "description": "get trip info by id",
+            "security": [{"bearer": ["admin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "schema": {"type": "number"},
+                    "required": true
+                }
+            ],
+            "responses": {
+                "200": {"description": "trip info retrieved successfully"},
+                "400": {"description": "invalid trip id"}
+            }
+        },
+        "put": {
+            "tags": ["trips"],
+            "description": "update trip info",
+            "security": [{"bearer": ["admin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "schema": {"type": "number"},
+                    "required": true
+                }
+            ],
+            "responses": {
+                "200": {"description": "trip info updated successfully"},
+                "400": {"description": "invalid trip id"}
+            }
+        },
+        "delete": {
+            "tags": ["trips"],
+            "description": "delete trip",
+            "security": [{"bearer": ["admin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "schema": {"type": "number"},
+                    "required": true
+                }
+            ],
+            "responses": {
+                "200": {"description": "trip info deleted successfully"},
+                "400": {"description": "invalid trip id"}
+            }
+        }
+    },
+    "/tripDays": {
+        "post": {
+            "tags": ["tripDays"],
+            "description": "add a provided day to the trip's working days",
+            "security": [{"bearer": ["admin"]}],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "TripId": {"type": "number"},
+                                "day": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "day added successfully"},
+                "400": {"description": "invalid day or tripId"}
+            }
+        },
+        "delete": {
+            "tags": ["tripDays"],
+            "description": "delete a provided day from the trip's working days",
+            "security": [{"bearer": ["admin"]}],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "TripId": {"type": "number"},
+                                "day": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "day deleted successfully"},
+                "400": {"description": "invalid day or tripId"}
+            }
+        }
+    },
+    "/tripDays/{id}": {
+        "get": {
+            "tags": ["tripDays"],
+            "description": "get trip's working days",
+            "security": [{"bearer": ["admin"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {"type": "number"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "trip's days retrieved successfully"},
+                "400": {"description": "invalid trip id"}
+            }
+        }
+    },
+    "/userTrips/{id}": {
+        "get": {
+            "tags": ["userTrips"],
+            "description": "get all user's bookings by his id",
+            "security": [{"bearer": ["admin", "user"]}],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {"type": "number"}
+                }
+            ],
+            "responses": {
+                "200": {"description": "user's trips retrieved successfully"},
+                "400": {"description": "invalid user id"}
+            }
+        }
+    },
+    "/userTrips": {
+        "post": {
+            "tags": ["userTrips"],
+            "description": "create a booking for user",
+            "security": [{"bearer": ["admin", "user"]}],
+            "requestBody": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "UserId": {"type": "number"},
+                                "TripId": {"type": "number"},
+                                "Date": {"type": "string"},
+                                "SeatsNo": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "user's booking created successfully"},
+                "400": {"description": "invalid input"}
+            }
+        },
+        "put": {
+            "tags": ["userTrips"],
+            "description": "put user's booking",
+            "security": [{"bearer": ["admin", "user"]}],
+            "requestBody": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "UserId": {"type": "number"},
+                                "TripId": {"type": "number"},
+                                "Date": {"type": "string"},
+                                "SeatsNo": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "user's booking updated successfully"},
+                "400": {"description": "invalid input"}
+            }
+        },
+        "delete": {
+            "tags": ["userTrips"],
+            "description": "delete user's booking",
+            "security": [{"bearer": ["admin", "user"]}],
+            "requestBody": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "UserId": {"type": "number"},
+                                "TripId": {"type": "number"},
+                                "Date": {"type": "string"},
+                                "SeatsNo": {"type": "number"}
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {"description": "user's booking deleted successfully"},
+                "400": {"description": "invalid input"}
+            }
+        }
     }
 }}
 
